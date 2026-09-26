@@ -86,6 +86,10 @@ main{max-width:1180px;margin:0 auto;padding-block:28px 0}
 .head{display:grid;grid-template-columns:2.4rem 1fr 1.3fr;gap:0 28px;align-items:end;padding-bottom:14px;border-bottom:2px solid var(--ink)}
 .head h1{grid-column:2;margin:0;font:600 calc(30px*var(--scale))/1.15 var(--en-font);text-wrap:balance}
 .head h2{grid-column:3;margin:0;font:600 calc(30px*var(--scale))/1.15 var(--zh-font);letter-spacing:.04em}
+.tline{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 10px}
+.tline .c i{font-weight:400;letter-spacing:0}
+.say{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border-radius:50%;color:var(--accent);margin-top:.05em}
+.say svg{width:18px;height:18px}
 .head .ver{display:block;font:400 13px/1.4 "Noto Sans",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:6px}
 
 .verses{background-color:var(--page);background-image:var(--tex);border:1px solid var(--rule);border-top:0;border-radius:0 0 10px 10px}
@@ -215,7 +219,7 @@ main{max-width:1180px;margin:0 auto;padding-block:28px 0}
 <main>
   <div class="head">
     <h1 id="enTitle">&nbsp;<span class="ver" id="enVer"></span></h1>
-    <h2 id="zhTitle">&nbsp;<span class="ver" id="zhVer"></span></h2>
+    <h2 id="zhTitle"><span class="tline"><span id="zhName" lang="zh"></span><button class="say" id="sayTitle" aria-label="Hear the book name in Chinese" title="Hear it in Chinese"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button></span><span class="ver" id="zhVer"></span></h2>
   </div>
   <div class="verses" id="verses"><div class="msg">Loading…</div></div>
   <nav class="chapnav" aria-label="Chapters">
@@ -465,7 +469,8 @@ async function loadChapter(){
   store.set('book', state.book); store.set('chap', state.chap);
   $('book').value = state.book; fillChapSelect();
   $('enTitle').firstChild.nodeValue = `${b.en} ${state.chap}`;
-  $('zhTitle').firstChild.nodeValue = `${zhName(b)} ${zhChap(b.id, state.chap)}`;
+  const zt = $('zhName'); zt.textContent = '';
+  zt.append(...renderZh(`${zhName(b)} ${zhChap(b.id, state.chap)}`).childNodes);   // title with pinyin underneath
   $('enVer').textContent = nivLabel(); $('zhVer').textContent = zhLabel();
   renderChapNav();
   document.title = `${b.en} ${state.chap} · Parallel Bible`;
@@ -791,7 +796,7 @@ function applyOpts(){
   root.style.setProperty('--scale', state.scale);
   root.style.setProperty('--en-font', EN_FONTS[state.en][2]);
   root.style.setProperty('--zh-font', ZH_FONTS[state.zh][2](state.trad));
-  $('verses').classList.toggle('nopy', !state.py);
+  document.querySelector('main').classList.toggle('nopy', !state.py);
   $('py').setAttribute('aria-pressed', state.py);
   $('sc').setAttribute('aria-pressed', !state.trad); $('tc').setAttribute('aria-pressed', state.trad);
   $('niv11').setAttribute('aria-pressed', state.niv === 'NIV2011'); $('niv84').setAttribute('aria-pressed', state.niv === 'NIV');
@@ -889,6 +894,19 @@ function speakNext(){
   tts.cur = u;
   synth.speak(u);
 }
+// Say one short phrase (the chapter title) without starting the verse-by-verse reader.
+function sayOnce(text){
+  if (!synth){ alertPlayer('This browser cannot read aloud.'); return; }
+  if (tts.on) stopAudio();
+  synth.cancel();
+  setTimeout(() => {
+    const u = new SpeechSynthesisUtterance(text);
+    const v = pickVoice();
+    if (v){ u.voice = v; u.lang = v.lang; } else u.lang = state.trad ? 'zh-TW' : 'zh-CN';
+    u.rate = state.rate;
+    synth.speak(u);
+  }, 80);
+}
 function stopAudio(){
   tts.on = false; tts.cur = null;
   if (synth) synth.cancel();
@@ -963,6 +981,7 @@ $('pPause').onclick = () => {
   else { tts.paused = false; $('pPause').textContent = 'Pause'; speakNext(); }   // resumes from the start of the current verse
 };
 $('pStop').onclick = stopAudio;
+$('sayTitle').onclick = () => { const b = bookOf(state.book); if (b) sayOnce(`${zhName(b)}，${zhChap(b.id, state.chap)}`); };
 $('rate').onchange = e => { state.rate = +e.target.value; applyOpts(); if (tts.on && !tts.paused){ tts.cur = null; synth.cancel(); setTimeout(speakNext, 80); } };
 $('voice').onchange = e => { state.voice = e.target.value; applyOpts(); };
 
