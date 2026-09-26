@@ -1,0 +1,987 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Parallel Bible 双语圣经</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="圣经">
+<meta name="robots" content="noindex">
+<script>
+// Set theme + page look before first paint so there is no flash.
+(function(){
+  function g(k, d){ try{ var v = localStorage.getItem('pb_'+k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } }
+  var t = g('theme', 'auto'), bg = g('bg', 'plain');
+  var dark = t === 'dark' || (t === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  var c = document.documentElement.classList;
+  if (dark) c.add('dark');
+  c.add('bg-' + bg);
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=LXGW+WenKai+TC&family=Literata:opsz,wght@7..72,400;7..72,600&family=Noto+Sans:wght@400;600&family=Noto+Sans+SC&family=Noto+Sans+TC&family=Noto+Serif+SC:wght@400;600&family=Noto+Serif+TC:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.29.4/dist/index.js"></script>
+<style>
+/* ---------- colour tokens: light ---------- */
+:root{
+  --bg:#F4F5F7; --page:#FFFFFF; --ink:#1B2130; --muted:#5A6376; --rule:#DDE1E8;
+  --accent:#2B4C7E; --on-accent:#FFFFFF; --rubric:#A33B2B; --pinyin:#3D5F8F; --btn:#EBEEF3;
+  --tex:none; --shadow:0 8px 30px rgba(20,30,50,.16);
+  --hl-yellow:rgba(255,205,40,.30); --hl-green:rgba(80,180,90,.22); --hl-blue:rgba(70,135,230,.20); --hl-pink:rgba(235,80,135,.20);
+  --play:rgba(43,76,126,.08);
+  --scale:1;
+  --en-font:"Source Serif 4",Georgia,serif;
+  --zh-font:"Noto Serif SC","Songti SC",serif;
+  color-scheme:light;
+}
+:root.bg-paper{ --bg:#ECEBE6; --page:#FBFAF6; --rule:#DEDBD2;
+  --tex:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .30 0 0 0 0 .22 .16 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+:root.bg-sepia{ --bg:#E8DCC3; --page:#F5ECD8; --ink:#3A2E21; --muted:#6D5D48; --rule:#D9C7A6; --btn:#EADFC8;
+  --accent:#7A4B22; --pinyin:#80552E; --rubric:#9A3522; --play:rgba(122,75,34,.10); }
+:root.bg-linen{ --bg:#E6ECEE; --page:#F6F8F8; --rule:#D5DDE0;
+  --tex:repeating-linear-gradient(0deg,rgba(40,65,80,.045) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(40,65,80,.045) 0 1px,transparent 1px 3px); }
+
+/* ---------- dark ---------- */
+:root.dark{
+  --bg:#12151B; --page:#1A1E26; --ink:#E6E8EC; --muted:#9AA3B2; --rule:#2C323D;
+  --accent:#8FB0E0; --on-accent:#10141B; --rubric:#E0826F; --pinyin:#9DB8E3; --btn:#252B35;
+  --tex:none; --shadow:0 8px 30px rgba(0,0,0,.5);
+  --hl-yellow:rgba(255,205,60,.18); --hl-green:rgba(90,190,100,.16); --hl-blue:rgba(90,150,240,.18); --hl-pink:rgba(240,90,145,.17);
+  --play:rgba(143,176,224,.10);
+  color-scheme:dark;
+}
+:root.dark.bg-paper{ --bg:#141412; --page:#1D1C19; --rule:#302E29;
+  --btn:#292824;
+  --tex:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 .95 .07 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+:root.dark.bg-sepia{ --bg:#1C1712; --page:#26201A; --ink:#EADFCB; --muted:#A99880; --rule:#3A3128; --btn:#322A22;
+  --accent:#D9A873; --pinyin:#D2A77A; --rubric:#E08A6C; --play:rgba(217,168,115,.10); }
+:root.dark.bg-linen{ --bg:#11171A; --page:#1A2226; --rule:#2B363B; --btn:#243035;
+  --tex:repeating-linear-gradient(0deg,rgba(255,255,255,.028) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(255,255,255,.028) 0 1px,transparent 1px 3px); }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background-color:var(--bg);background-image:var(--tex);color:var(--ink);font:15px/1.5 "Noto Sans",system-ui,sans-serif;padding-inline:16px}
+
+select,button{font:inherit;font-size:15px;color:var(--ink);background:var(--btn);border:1px solid var(--rule);
+  border-radius:8px;padding:7px 11px;cursor:pointer}
+button:hover,select:hover{border-color:var(--accent)}
+button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+
+/* ---------- top bar ---------- */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background-color:var(--bg);background-image:var(--tex);
+  padding-block:12px;border-bottom:1px solid var(--rule);margin-inline:-16px;padding-inline:16px}
+.bar-in{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.nav,.opts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.nav select{max-width:46vw}
+.arrow{width:40px;font-size:18px;line-height:1;padding-inline:0}
+.count{display:inline-block;min-width:1.5em;margin-left:4px;padding:0 5px;border-radius:9px;background:var(--rubric);color:var(--page);font-size:12px;line-height:1.5;text-align:center}
+.count:empty{display:none}
+
+/* ---------- page ---------- */
+main{max-width:1180px;margin:0 auto;padding-block:28px 0}
+.head{display:grid;grid-template-columns:2.4rem 1fr 1.3fr;gap:0 28px;align-items:end;padding-bottom:14px;border-bottom:2px solid var(--ink)}
+.head h1{grid-column:2;margin:0;font:600 calc(30px*var(--scale))/1.15 var(--en-font);text-wrap:balance}
+.head h2{grid-column:3;margin:0;font:600 calc(30px*var(--scale))/1.15 var(--zh-font);letter-spacing:.04em}
+.head .ver{display:block;font:400 13px/1.4 "Noto Sans",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+
+.verses{background-color:var(--page);background-image:var(--tex);border:1px solid var(--rule);border-top:0;border-radius:0 0 10px 10px}
+.v{display:grid;grid-template-columns:2.4rem 1fr 1.3fr;gap:0 28px;padding:16px 20px 16px 8px;border-top:1px solid var(--rule);cursor:pointer;scroll-margin-top:120px}
+.v:first-child{border-top:0}
+.v.hl-yellow{background:var(--hl-yellow)} .v.hl-green{background:var(--hl-green)}
+.v.hl-blue{background:var(--hl-blue)}     .v.hl-pink{background:var(--hl-pink)}
+.v.playing{background-image:linear-gradient(var(--play),var(--play))}
+.v.sel{outline:2px solid var(--accent);outline-offset:-2px}
+.n{font:600 13px/1 "Noto Sans",sans-serif;color:var(--rubric);text-align:right;padding-top:.55em;font-variant-numeric:tabular-nums}
+.v.playing .n::before{content:"♪ ";color:var(--accent)}
+.en{font:400 calc(18px*var(--scale))/1.65 var(--en-font);max-width:65ch}
+.en strong{font-weight:600}
+.en .note{color:var(--muted);font-size:.85em}
+.zh{--zh:calc(24px*var(--scale));font-family:var(--zh-font);font-size:var(--zh);line-height:1.2}
+.c{display:inline-flex;flex-direction:column;align-items:center;vertical-align:top;margin-bottom:6px;padding-inline:.18em}
+.c b{font-weight:400}
+.c i{font:400 max(12px,calc(13px*var(--scale)))/1.3 "Noto Sans",sans-serif;font-style:normal;color:var(--pinyin);white-space:nowrap;min-height:1.3em}
+.c.name b{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em;text-decoration-color:var(--muted)}
+.c.p{padding-inline:0}
+.zh .note{font-size:max(13px,calc(15px*var(--scale)));color:var(--muted);vertical-align:top;line-height:1.6}
+.nopy .c i{display:none}
+.nopy .c{margin-bottom:2px}
+.gap{color:var(--muted);font-style:italic;font-size:14px}
+.msg{padding:40px 20px;text-align:center;color:var(--muted)}
+.msg button{margin-top:12px}
+.foot{max-width:1180px;margin:18px auto 0;padding-bottom:170px;color:var(--muted);font-size:13px}
+
+/* ---------- chapter navigation ---------- */
+.chapnav{display:grid;grid-template-columns:1fr 2fr;gap:12px;margin-top:20px}
+.chapnav button{text-align:left;padding:14px 18px;border-radius:12px;line-height:1.35;background:var(--page)}
+.chapnav #bNext{text-align:right;grid-column:2}
+.chapnav small{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chapnav strong{display:block;font:600 18px/1.3 var(--en-font)}
+.chapnav span{display:block;font:400 16px/1.4 var(--zh-font);color:var(--muted)}
+.side{display:none;position:fixed;top:50%;transform:translateY(-50%);z-index:4;width:44px;height:96px;padding:0;
+  border-radius:22px;font-size:28px;line-height:1;background:var(--page);opacity:.7}
+.side:hover,.side:focus-visible{opacity:1}
+#sidePrev{left:10px} #sideNext{right:10px}
+@media (min-width:900px){
+  body{padding-inline:68px}
+  .bar{margin-inline:-68px;padding-inline:68px}
+  .side{display:block}
+}
+
+/* ---------- sync ---------- */
+.sync p{margin:0 0 10px;font-size:14px}
+.sync ol{margin:8px 0 12px;padding-left:20px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.sync input{width:100%;font:inherit;font-size:15px;color:var(--ink);background:var(--btn);border:1px solid var(--rule);border-radius:8px;padding:9px 11px;margin-bottom:8px}
+.sync input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.sync a{color:var(--accent)}
+.sync .ok{color:var(--ink)} .sync .err{color:var(--rubric)}
+#syncStatus{display:block;margin-bottom:10px;font-size:14px}
+
+/* ---------- bottom dock: verse actions + player ---------- */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:10;padding:0 10px calc(10px + env(safe-area-inset-bottom,0px));
+  display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.dock > div{pointer-events:auto;width:100%;max-width:760px;background:var(--page);border:1px solid var(--rule);border-radius:14px;
+  box-shadow:var(--shadow);padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.ref{font-weight:600;margin-right:auto;font-variant-numeric:tabular-nums}
+.sw{display:flex;gap:6px}
+.sw button{width:34px;height:34px;padding:0;border-radius:50%;border:2px solid var(--rule)}
+.sw button[data-c="yellow"]{background:#F7CF45} .sw button[data-c="green"]{background:#6CC57A}
+.sw button[data-c="blue"]{background:#6DA0EC}   .sw button[data-c="pink"]{background:#EE7FA8}
+.sw button[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px var(--page) inset}
+.player .ref{font-weight:400;color:var(--muted)}
+.player .ref b{color:var(--ink)}
+
+/* ---------- side sheets ---------- */
+.scrim{position:fixed;inset:0;background:rgba(10,14,22,.4);z-index:19}
+.sheet{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);z-index:20;background:var(--page);border-left:1px solid var(--rule);
+  overflow:auto;padding:calc(env(safe-area-inset-top,0px) + 18px) 20px calc(env(safe-area-inset-bottom,0px) + 28px);box-shadow:var(--shadow)}
+.sheet header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sheet h3{margin:0;font:600 20px/1.2 var(--en-font)}
+.sheet h4{margin:22px 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.choice{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.choice button{text-align:left;padding:10px 12px;line-height:1.3}
+.choice button small{display:block;font:400 12px/1.3 "Noto Sans",sans-serif;opacity:.8;margin-top:2px}
+.bgpick button{height:64px;display:flex;align-items:flex-end;font-size:13px}
+.bgpick button[aria-pressed="true"]{outline:3px solid var(--accent);outline-offset:1px;color:inherit}
+.hint{color:var(--muted);font-size:13px;margin:8px 0 0}
+#voice{width:100%}
+
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.filters button{padding:5px 10px;font-size:13px}
+.saved{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.saved li{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:12px 1fr auto;gap:4px 10px;align-items:start}
+.saved .dot{width:12px;height:12px;border-radius:50%;margin-top:5px}
+.saved .r{font-weight:600;cursor:pointer}
+.saved .r:hover{color:var(--accent)}
+.saved .s{grid-column:2/4;font-size:14px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.saved .s.z{font-family:var(--zh-font);font-size:15px}
+.saved .x{padding:3px 8px;font-size:13px}
+.saved li.empty{display:block;color:var(--muted);padding:24px 0;border:0}
+
+@media (max-width:760px){
+  .head{grid-template-columns:1fr;gap:4px}
+  .head h1,.head h2{grid-column:1}
+  .v{grid-template-columns:1fr;gap:10px;padding:14px 14px}
+  .n{text-align:left;padding-top:0}
+  .opts .wide{display:none}
+  .bar{position:static}
+  .chapnav{grid-template-columns:1fr}
+  .chapnav #bNext{grid-column:1;order:-1}   /* 3 rows is too much screen to pin on a phone */
+}
+@media (prefers-reduced-motion:no-preference){ .v{transition:background-color .15s} }
+</style>
+</head>
+<body>
+<div class="bar"><div class="bar-in">
+  <div class="nav">
+    <button class="arrow" id="prev" aria-label="Previous chapter">‹</button>
+    <select id="book" aria-label="Book"></select>
+    <select id="chap" aria-label="Chapter"></select>
+    <button class="arrow" id="next" aria-label="Next chapter">›</button>
+  </div>
+  <div class="opts">
+    <button id="py" aria-pressed="true">拼音</button>
+    <button id="listen">▶&#xFE0E; 朗读<span class="wide"> Listen</span></button>
+    <button id="openSaved">Saved<span class="count" id="count"></span></button>
+    <button id="openStyle" aria-label="Fonts, page and text size">Aa</button>
+    <button id="theme" aria-label="Light or dark"></button>
+  </div>
+</div></div>
+
+<main>
+  <div class="head">
+    <h1 id="enTitle">&nbsp;<span class="ver" id="enVer"></span></h1>
+    <h2 id="zhTitle">&nbsp;<span class="ver" id="zhVer"></span></h2>
+  </div>
+  <div class="verses" id="verses"><div class="msg">Loading…</div></div>
+  <nav class="chapnav" aria-label="Chapters">
+    <button id="bPrev" hidden></button>
+    <button id="bNext" hidden></button>
+  </nav>
+</main>
+<button class="side" id="sidePrev" aria-label="Previous chapter">‹</button>
+<button class="side" id="sideNext" aria-label="Next chapter">›</button>
+<p class="foot">Tap a verse to highlight, copy or listen. ← → keys or a sideways swipe change chapter. Pinyin and audio are generated automatically, so a character with more than one reading can occasionally be wrong. Text from bolls.life, for personal reading.</p>
+
+<div class="dock">
+  <div class="player" id="player" hidden>
+    <span class="ref" id="pNow"></span>
+    <button id="pPause">Pause</button>
+    <button id="pStop">Stop</button>
+    <select id="rate" aria-label="Reading speed">
+      <option value="0.6">Slow 0.6×</option><option value="0.75">0.75×</option><option value="0.9">0.9×</option>
+      <option value="1">Normal 1×</option><option value="1.15">1.15×</option>
+    </select>
+  </div>
+  <div id="vbar" hidden>
+    <span class="ref" id="vRef"></span>
+    <div class="sw" role="group" aria-label="Highlight colour">
+      <button data-c="yellow" aria-label="Yellow"></button><button data-c="green" aria-label="Green"></button>
+      <button data-c="blue" aria-label="Blue"></button><button data-c="pink" aria-label="Pink"></button>
+    </div>
+    <button id="vClear">Remove</button>
+    <button id="vCopy">Copy</button>
+    <button id="vPlay">▶&#xFE0E; Listen</button>
+    <button id="vClose" aria-label="Close">✕</button>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+
+<aside class="sheet" id="styleSheet" hidden aria-label="Display settings">
+  <header><h3>Display</h3><button class="closeSheet">Done</button></header>
+
+  <h4>Light or dark</h4>
+  <div class="row" id="themePick">
+    <button data-v="auto">Auto</button><button data-v="light">Light</button><button data-v="dark">Dark</button>
+  </div>
+
+  <h4>Page</h4>
+  <div class="choice bgpick" id="bgPick"></div>
+
+  <h4>English font</h4>
+  <div class="choice" id="enPick"></div>
+
+  <h4>Chinese font 中文字体</h4>
+  <div class="choice" id="zhPick"></div>
+
+  <h4>Text size</h4>
+  <div class="row"><button id="smaller">A−</button><button id="sizeLbl" disabled style="cursor:default">100%</button><button id="bigger">A+</button></div>
+
+  <h4>Chinese version</h4>
+  <div class="row"><button id="sc">新标点和合本 简体</button><button id="tc">和合本 繁體</button></div>
+
+  <h4>English version</h4>
+  <div class="row"><button id="niv11">NIV 2011</button><button id="niv84">NIV 1984</button></div>
+
+  <h4>Chinese reading voice</h4>
+  <select id="voice" aria-label="Chinese reading voice"></select>
+  <p class="hint" id="voiceHint">Uses the voices built into this device. More voices: iPhone Settings → Accessibility → Spoken Content → Voices → Chinese.</p>
+</aside>
+
+<aside class="sheet" id="savedSheet" hidden aria-label="Saved verses">
+  <header><h3>Saved verses</h3><button class="closeSheet">Done</button></header>
+  <div class="filters" id="filters"></div>
+  <ul class="saved" id="savedList"></ul>
+  <div class="row" style="margin-top:16px"><button id="copyAll">Copy all as text</button></div>
+  <h4>Sync across devices</h4>
+  <div class="sync" id="syncBox"></div>
+</aside>
+
+<script>
+const API = 'https://bolls.life';
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('pb_'+k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('pb_'+k, JSON.stringify(v)); }catch(e){} }
+};
+const state = {
+  book: store.get('book', 43), chap: store.get('chap', 3),
+  py: store.get('py', true), trad: store.get('trad', false),
+  niv: store.get('niv', 'NIV2011'), scale: store.get('scale', 1),
+  theme: store.get('theme', 'auto'), bg: store.get('bg', 'plain'),
+  en: store.get('en', 'source'), zh: store.get('zh', 'song'),
+  rate: store.get('rate', 0.9), voice: store.get('voice', '')
+};
+let marks = store.get('marks', {});          // "book:chap:verse" -> {c, t, en, zh}
+let dels  = store.get('dels', {});           // "book:chap:verse" -> time removed (so removals sync too)
+let sync  = store.get('sync', null);         // {token, gist, last}
+const zhT = () => state.trad ? 'CUV' : 'CUNPS';
+let books = [];
+const cache = new Map();
+let loadSeq = 0, selected = null, pendingVerse = null;
+
+const EN_FONTS = {
+  source:   ['Source Serif', 'Clear book serif', '"Source Serif 4",Georgia,serif'],
+  garamond: ['EB Garamond', 'Classic Bible type', '"EB Garamond",Garamond,Georgia,serif'],
+  literata: ['Literata', 'Made for e-readers', 'Literata,Georgia,serif'],
+  atkinson: ['Atkinson', 'Easiest to read', '"Atkinson Hyperlegible","Noto Sans",sans-serif']
+};
+const ZH_FONTS = {
+  song: ['宋体 Song', '印刷体 printed', t => t ? '"Noto Serif TC","Songti TC",serif' : '"Noto Serif SC","Songti SC",serif'],
+  hei:  ['黑体 Hei', '无衬线 clean', t => t ? '"Noto Sans TC","PingFang TC",sans-serif' : '"Noto Sans SC","PingFang SC",sans-serif'],
+  kai:  ['楷体 Kai', '手写楷书 brush', () => '"LXGW WenKai TC","Kaiti SC","STKaiti",serif']
+};
+const BGS = { plain: 'Plain', paper: 'Paper', sepia: 'Sepia', linen: 'Linen' };
+
+// Chapters already read are kept on this device, so they open instantly and work offline.
+const CH_MAX = 100;   // ~1–2 MB, leaves plenty of room for saved verses
+function savedChapter(path){ return store.get('ch' + path, null); }
+function keepChapter(path, data){
+  const idx = store.get('chIdx', []).filter(p => p !== path);
+  idx.push(path);
+  while (idx.length > CH_MAX){ try{ localStorage.removeItem('pb_ch' + idx.shift()); }catch(e){} }
+  store.set('ch' + path, data); store.set('chIdx', idx);
+}
+async function getJSON(path){
+  if (cache.has(path)) return cache.get(path);
+  const kept = savedChapter(path);
+  if (kept){ cache.set(path, kept); return kept; }
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 90000);
+  try {
+    const r = await fetch(API + path, {signal: ctl.signal});
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    cache.set(path, j); keepChapter(path, j);
+    return j;
+  } finally { clearTimeout(timer); }
+}
+
+/* ---------- parse source markup into safe runs ---------- */
+function toRuns(html){
+  const doc = new DOMParser().parseFromString('<div>' + html + '</div>', 'text/html');
+  const runs = [];
+  (function walk(node, kind){
+    for (const ch of node.childNodes){
+      if (ch.nodeType === 3){ if (ch.nodeValue) runs.push({kind, text: ch.nodeValue}); }
+      else if (ch.nodeType === 1){
+        const t = ch.tagName.toLowerCase();
+        if (t === 'br') { runs.push({kind:'br', text:''}); continue; }
+        const k = t === 'e' ? 'name' : t === 'sup' ? 'note' : (t === 'b' || t === 'strong') ? 'bold' : kind;
+        walk(ch, kind === 'note' ? 'note' : k);
+      }
+    }
+  })(doc.body.firstChild, 'text');
+  return runs;
+}
+const plainOf = (html, keepNotes) => toRuns(html).filter(r => keepNotes || r.kind !== 'note').map(r => r.text).join('').trim();
+
+function renderEn(html){
+  const div = document.createElement('div');
+  div.className = 'en';
+  for (const r of toRuns(html)){
+    if (r.kind === 'br'){ div.append(document.createElement('br')); continue; }
+    if (r.kind === 'bold'){ const s = document.createElement('strong'); s.textContent = r.text; div.append(s); }
+    else if (r.kind === 'note'){ const s = document.createElement('span'); s.className='note'; s.textContent = r.text; div.append(s); }
+    else div.append(r.text);
+  }
+  return div;
+}
+
+function renderZh(html){
+  const div = document.createElement('div');
+  div.className = 'zh';
+  const runs = toRuns(html);
+  // Whole verse goes to the pinyin engine at once so it can use phrase context for multi-reading characters.
+  let plain = '', flags = [], inserts = [];
+  for (const r of runs){
+    if (r.kind === 'note' || r.kind === 'br'){ inserts.push({at: plain.length, r}); continue; }
+    const t = r.text.replace(/\s+/g, '');
+    plain += t;
+    for (let i = 0; i < t.length; i++) flags.push(r.kind);
+  }
+  let items = [];
+  try { items = pinyinPro.pinyin(plain, {type:'all', toneType:'symbol'}); }
+  catch(e){ items = [...plain].map(ch => ({origin: ch, pinyin: '', isZh: false})); }
+
+  let pos = 0, ins = 0;
+  const flush = () => {
+    while (ins < inserts.length && inserts[ins].at <= pos){
+      const r = inserts[ins++].r;
+      if (r.kind === 'br') div.append(document.createElement('br'));
+      else { const s = document.createElement('span'); s.className='note'; s.textContent = r.text; div.append(s); }
+    }
+  };
+  for (const it of items){
+    for (const ch of [...it.origin]){
+      flush();
+      const u = document.createElement('span');
+      const b = document.createElement('b'); b.textContent = ch;
+      const i = document.createElement('i'); i.textContent = it.isZh ? it.pinyin : '';
+      u.className = 'c' + (it.isZh ? '' : ' p') + (flags[pos] === 'name' ? ' name' : '');
+      u.append(b, i);
+      div.append(u);
+      pos += ch.length;
+    }
+  }
+  pos = Infinity; flush();
+  return div;
+}
+
+/* ---------- labels ---------- */
+const bookOf = id => books.find(x => x.id === id);
+const zhName = b => state.trad ? b.tc : b.sc;
+function zhChap(bookId, c){ return bookId === 19 ? `第${c}篇` : `第${c}章`; }
+const nivLabel = () => state.niv === 'NIV2011' ? 'New International Version · 2011' : 'New International Version · 1984';
+const zhLabel  = () => state.trad ? '和合本 · 繁體' : '新标点和合本 · 简体';
+const refText = (b, c, v) => `${b.en} ${c}:${v}`;
+
+/* ---------- books ---------- */
+// [id, English, 简体, 繁體 (as the text service names them), chapters]
+const BOOKS = [[1,"Genesis","创世记","创世记",50],[2,"Exodus","出埃及记","出埃及记",40],[3,"Leviticus","利未记","利未记",27],[4,"Numbers","民数记","民数记",36],[5,"Deuteronomy","申命记","申命记",34],[6,"Joshua","约书亚记","约书亚记",24],[7,"Judges","士师记","士师记",21],[8,"Ruth","路得记","路得记",4],[9,"1 Samuel","撒母耳记上","撒母耳记上",31],[10,"2 Samuel","撒母耳记下","撒母耳记下",24],[11,"1 Kings","列王纪上","列王纪上",22],[12,"2 Kings","列王纪下","列王纪下",25],[13,"1 Chronicles","历代志上","历代志上",29],[14,"2 Chronicles","历代志下","历代志下",36],[15,"Ezra","以斯拉记","以斯拉记",10],[16,"Nehemiah","尼希米记","尼希米记",13],[17,"Esther","以斯帖记","以斯帖记",10],[18,"Job","约伯记","约伯记",42],[19,"Psalm","诗篇","诗篇",150],[20,"Proverbs","箴言","箴言",31],[21,"Ecclesiastes","传道书","传道书",12],[22,"Song of Songs","雅歌","雅歌",8],[23,"Isaiah","以赛亚书","以赛亚书",66],[24,"Jeremiah","耶利米书","耶利米书",52],[25,"Lamentations","耶利米哀歌","耶利米哀歌",5],[26,"Ezekiel","以西结书","以西结书",48],[27,"Daniel","但以理书","但以理书",12],[28,"Hosea","何西阿书","何西阿书",14],[29,"Joel","约珥书","约珥书",3],[30,"Amos","阿摩司书","阿摩司书",9],[31,"Obadiah","俄巴底亚书","俄巴底亚书",1],[32,"Jonah","约拿书","约拿书",4],[33,"Micah","弥迦书","弥迦书",7],[34,"Nahum","那鸿书","那鸿书",3],[35,"Habakkuk","哈巴谷书","哈巴谷书",3],[36,"Zephaniah","西番雅书","西番雅书",3],[37,"Haggai","哈该书","哈该书",2],[38,"Zechariah","撒迦利亚书","撒迦利亚书",14],[39,"Malachi","玛拉基书","玛拉基书",4],[40,"Matthew","马太福音","马太福音",28],[41,"Mark","马可福音","马可福音",16],[42,"Luke","路加福音","路加福音",24],[43,"John","约翰福音","约翰福音",21],[44,"Acts","使徒行传","使徒行传",28],[45,"Romans","罗马书","罗马书",16],[46,"1 Corinthians","哥林多前书","哥林多前书",16],[47,"2 Corinthians","哥林多后书","哥林多后书",13],[48,"Galatians","加拉太书","加拉太书",6],[49,"Ephesians","以弗所书","以弗所书",6],[50,"Philippians","腓立比书","腓立比书",4],[51,"Colossians","歌罗西书","歌罗西书",4],[52,"1 Thessalonians","帖撒罗尼迦前书","帖撒罗尼迦前书",5],[53,"2 Thessalonians","帖撒罗尼迦后书","帖撒罗尼迦后书",3],[54,"1 Timothy","提摩太前书","提摩太前书",6],[55,"2 Timothy","提摩太后书","提摩太后书",4],[56,"Titus","提多书","提多书",3],[57,"Philemon","腓利门书","腓利门书",1],[58,"Hebrews","希伯来书","希伯来书",13],[59,"James","雅各书","雅各书",5],[60,"1 Peter","彼得前书","彼得前书",5],[61,"2 Peter","彼得后书","彼得后书",3],[62,"1 John","约翰壹书","约翰一书",5],[63,"2 John","约翰贰书","约翰二书",1],[64,"3 John","约翰参书","约翰三书",1],[65,"Jude","犹大书","犹大书",1],[66,"Revelation","启示录","启示录",22]];
+function loadBooks(){
+  books = BOOKS.map(([id, en, sc, tc, chapters]) => ({id, en, sc, tc, chapters}));
+  fillBookSelect();
+}
+function fillBookSelect(){
+  const sel = $('book'); sel.textContent = '';
+  for (const b of books){
+    const o = document.createElement('option');
+    o.value = b.id; o.textContent = `${b.en} · ${zhName(b)}`;
+    sel.append(o);
+  }
+  sel.value = state.book;
+}
+function fillChapSelect(){
+  const b = bookOf(state.book), sel = $('chap');
+  sel.textContent = '';
+  for (let c = 1; c <= b.chapters; c++){
+    const o = document.createElement('option'); o.value = c; o.textContent = `Ch ${c} · ${zhChap(b.id, c)}`; sel.append(o);
+  }
+  sel.value = state.chap;
+}
+
+/* ---------- chapter ---------- */
+async function loadChapter(){
+  const seq = ++loadSeq;
+  stopAudio(); selectRow(null);
+  const b = bookOf(state.book);
+  if (!b) return;
+  if (state.chap > b.chapters) state.chap = 1;
+  store.set('book', state.book); store.set('chap', state.chap);
+  $('book').value = state.book; fillChapSelect();
+  $('enTitle').firstChild.nodeValue = `${b.en} ${state.chap}`;
+  $('zhTitle').firstChild.nodeValue = `${zhName(b)} ${zhChap(b.id, state.chap)}`;
+  $('enVer').textContent = nivLabel(); $('zhVer').textContent = zhLabel();
+  renderChapNav();
+  document.title = `${b.en} ${state.chap} · Parallel Bible`;
+
+  const box = $('verses');
+  box.innerHTML = '<div class="msg">Loading…</div>';
+  const slow = setTimeout(() => { if (seq === loadSeq && box.querySelector('.msg')) box.querySelector('.msg').textContent = 'Still loading… the free Bible text service is slow right now. Chapters you have opened before load instantly.'; }, 6000);
+  let en, zh;
+  try {
+    [en, zh] = await Promise.all([
+      getJSON(`/get-text/${state.niv}/${b.id}/${state.chap}/`),
+      getJSON(`/get-text/${zhT()}/${b.id}/${state.chap}/`)
+    ]);
+  } catch(e){
+    clearTimeout(slow);
+    if (seq !== loadSeq) return;
+    box.innerHTML = `<div class="msg">Couldn't load ${b.en} ${state.chap}. Check your internet connection, then try again.<br><button id="retry">Try again</button></div>`;
+    $('retry').onclick = loadChapter;
+    return;
+  }
+  clearTimeout(slow);
+  if (seq !== loadSeq) return;
+
+  const enMap = new Map(en.map(v => [v.verse, v.text])), zhMap = new Map(zh.map(v => [v.verse, v.text]));
+  const nums = [...new Set([...enMap.keys(), ...zhMap.keys()])].sort((a, b) => a - b);
+  const frag = document.createDocumentFragment();
+  for (const n of nums){
+    const row = document.createElement('div'); row.className = 'v'; row.dataset.v = n;
+    row.dataset.en = enMap.has(n) ? plainOf(enMap.get(n)) : '';
+    row.dataset.zh = zhMap.has(n) ? plainOf(zhMap.get(n)) : '';
+    const num = document.createElement('div'); num.className = 'n'; num.textContent = n;
+    const e = enMap.has(n) ? renderEn(enMap.get(n)) : Object.assign(document.createElement('div'), {className:'en gap', textContent:'(No verse here in this edition)'});
+    const z = zhMap.has(n) ? renderZh(zhMap.get(n)) : Object.assign(document.createElement('div'), {className:'zh gap', textContent:'（此版本无此节）'});
+    row.append(num, e, z);
+    const m = marks[`${b.id}:${state.chap}:${n}`];
+    if (m) row.classList.add('hl-' + m.c);
+    frag.append(row);
+  }
+  box.textContent = '';
+  box.append(frag);
+  if (pendingVerse){
+    const row = box.querySelector(`.v[data-v="${pendingVerse}"]`);
+    pendingVerse = null;
+    if (row){ row.scrollIntoView({block:'center'}); selectRow(row); }
+  } else window.scrollTo({top: 0});
+}
+
+function neighbour(d){
+  const i = books.findIndex(x => x.id === state.book);
+  const c = state.chap + d;
+  if (c < 1) return i === 0 ? null : {book: books[i-1].id, chap: books[i-1].chapters};
+  if (c > books[i].chapters) return i === books.length - 1 ? null : {book: books[i+1].id, chap: 1};
+  return {book: state.book, chap: c};
+}
+function step(d){
+  const n = neighbour(d);
+  if (!n) return;
+  state.book = n.book; state.chap = n.chap; loadChapter();
+}
+function renderChapNav(){
+  for (const [id, sid, d, word] of [['bPrev', 'sidePrev', -1, 'Previous'], ['bNext', 'sideNext', 1, 'Next chapter']]){
+    const n = neighbour(d), btn = $(id);
+    btn.hidden = !n; $(sid).hidden = !n;
+    if (!n) continue;
+    const bk = bookOf(n.book);
+    btn.textContent = '';
+    btn.append(
+      Object.assign(document.createElement('small'), {textContent: d < 0 ? '‹ ' + word : word + ' ›'}),
+      Object.assign(document.createElement('strong'), {textContent: `${bk.en} ${n.chap}`}),
+      Object.assign(document.createElement('span'), {textContent: `${zhName(bk)} ${zhChap(bk.id, n.chap)}`}));
+    $(sid).setAttribute('aria-label', `${word}: ${bk.en} ${n.chap}`);
+  }
+}
+function goTo(book, chap, verse){
+  closeSheets();
+  if (book === state.book && chap === state.chap){
+    const row = $('verses').querySelector(`.v[data-v="${verse}"]`);
+    if (row){ row.scrollIntoView({block:'center'}); selectRow(row); }
+    return;
+  }
+  state.book = book; state.chap = chap; pendingVerse = verse; loadChapter();
+}
+
+/* ---------- selection + highlights ---------- */
+const keyOf = row => `${state.book}:${state.chap}:${row.dataset.v}`;
+function selectRow(row){
+  if (selected) selected.classList.remove('sel');
+  selected = row;
+  $('vbar').hidden = !row;
+  if (!row) return;
+  row.classList.add('sel');
+  $('vRef').textContent = `${state.chap}:${row.dataset.v}`;
+  const m = marks[keyOf(row)];
+  for (const s of document.querySelectorAll('.sw button')) s.setAttribute('aria-pressed', !!m && m.c === s.dataset.c);
+}
+function setMark(color){
+  if (!selected) return;
+  const k = keyOf(selected);
+  selected.classList.remove('hl-yellow','hl-green','hl-blue','hl-pink');
+  if (color){
+    putMark(k, {c: color, t: Date.now(), en: selected.dataset.en, zh: selected.dataset.zh});
+    selected.classList.add('hl-' + color);
+  } else dropMark(k);
+  selectRow(selected);
+}
+function putMark(k, m){ marks[k] = m; delete dels[k]; saveMarks(); }
+function dropMark(k){ if (!marks[k]) return; delete marks[k]; dels[k] = Date.now(); saveMarks(); }
+function saveMarks(){ store.set('marks', marks); store.set('dels', dels); updateCount(); queueSync(); }
+// Re-paint highlights after a sync brought in changes from another device.
+function refreshMarks(){
+  for (const row of $('verses').querySelectorAll('.v')){
+    row.classList.remove('hl-yellow','hl-green','hl-blue','hl-pink');
+    const m = marks[keyOf(row)];
+    if (m) row.classList.add('hl-' + m.c);
+  }
+  if (selected) selectRow(selected);
+  updateCount();
+  if (!$('savedSheet').hidden) renderSaved();
+}
+function updateCount(){ const n = Object.keys(marks).length; $('count').textContent = n || ''; }
+
+async function copyText(text, btn){
+  const old = btn.textContent;
+  try { await navigator.clipboard.writeText(text); }
+  catch(e){
+    const ta = document.createElement('textarea'); ta.value = text; document.body.append(ta); ta.select();
+    try { document.execCommand('copy'); } catch(_){}
+    ta.remove();
+  }
+  btn.textContent = 'Copied'; setTimeout(() => btn.textContent = old, 1400);
+}
+
+/* ---------- saved list ---------- */
+let filter = 'all';
+const DOT = {yellow:'#F7CF45', green:'#6CC57A', blue:'#6DA0EC', pink:'#EE7FA8'};
+function sortedMarks(){
+  return Object.entries(marks).map(([k, m]) => { const [b, ch, v] = k.split(':').map(Number); return {...m, k, b, ch, v}; })
+    .sort((x, y) => x.b - y.b || x.c - y.c || x.v - y.v);
+}
+function renderSaved(){
+  const fl = $('filters'); fl.textContent = '';
+  for (const f of ['all', 'yellow', 'green', 'blue', 'pink']){
+    const b = document.createElement('button');
+    b.textContent = f === 'all' ? 'All' : f[0].toUpperCase() + f.slice(1);
+    b.setAttribute('aria-pressed', filter === f);
+    b.onclick = () => { filter = f; renderSaved(); };
+    fl.append(b);
+  }
+  const list = $('savedList'); list.textContent = '';
+  const items = sortedMarks().filter(m => filter === 'all' || m.c === filter);
+  if (!items.length){
+    const li = document.createElement('li'); li.className = 'empty'; li.style.border = '0';
+    li.textContent = Object.keys(marks).length ? 'No verses in this colour.' : 'Nothing saved yet. Tap any verse, then pick a colour.';
+    list.append(li); return;
+  }
+  for (const m of items){
+    const bk = bookOf(m.b); if (!bk) continue;
+    const li = document.createElement('li');
+    const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = DOT[m.c];
+    const r = document.createElement('span'); r.className = 'r'; r.textContent = `${refText(bk, m.ch, m.v)} · ${zhName(bk)} ${m.ch}:${m.v}`;
+    r.onclick = () => goTo(m.b, m.ch, m.v);
+    const x = document.createElement('button'); x.className = 'x'; x.textContent = 'Remove';
+    x.onclick = () => {
+      dropMark(m.k); renderSaved();
+      if (m.b === state.book && m.ch === state.chap){
+        const row = $('verses').querySelector(`.v[data-v="${m.v}"]`);
+        if (row){ row.classList.remove('hl-' + m.c); if (row === selected) selectRow(row); }
+      }
+    };
+    const s1 = document.createElement('span'); s1.className = 's'; s1.textContent = m.en;
+    const s2 = document.createElement('span'); s2.className = 's z'; s2.textContent = m.zh;
+    li.append(dot, r, x, s1, s2);
+    list.append(li);
+  }
+}
+
+/* ---------- GitHub sync (a private Gist holds the highlights) ---------- */
+const GH = 'https://api.github.com', GFILE = 'parallel-bible-highlights.json';
+let syncing = null, syncAgain = false, syncTimer = null, syncMsg = null;
+async function gh(path, opts = {}){
+  const headers = {Authorization: 'Bearer ' + sync.token, Accept: 'application/vnd.github+json'};
+  if (opts.body) headers['Content-Type'] = 'application/json';
+  const r = await fetch(GH + path, {...opts, headers, cache: 'no-store'});
+  if (!r.ok){ const e = new Error('GitHub ' + r.status); e.status = r.status; throw e; }
+  return r.json();
+}
+const canon = o => JSON.stringify(Object.keys(o || {}).sort().map(k => [k, o[k]]));
+const payload = () => JSON.stringify({app: 'Parallel Bible', version: 1, updated: new Date().toISOString(), marks, dels}, null, 1);
+// Newest action wins per verse: a highlight, a colour change, or a removal.
+function mergeIn(remote){
+  const rm = remote.marks || {}, rd = remote.dels || {};
+  let changed = false;
+  for (const k of new Set([...Object.keys(rm), ...Object.keys(rd)])){
+    const local = Math.max(marks[k] ? marks[k].t : 0, dels[k] || 0);
+    const rMark = rm[k] ? rm[k].t : 0, rDel = rd[k] || 0;
+    if (rMark > local && rMark >= rDel){ marks[k] = rm[k]; delete dels[k]; changed = true; }
+    else if (rDel > local && rDel > rMark){ delete marks[k]; dels[k] = rDel; changed = true; }
+  }
+  return changed;
+}
+function queueSync(){ if (!sync) return; clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, 1500); }
+function errText(e){
+  if (e.status === 401) return 'GitHub turned the key down. It may have expired or been deleted. Disconnect, then paste a new key.';
+  if (e.status === 403 || e.status === 404) return 'The key can’t reach your GitHub notes. Make a new key with the “gist” box ticked.';
+  return 'Couldn’t reach GitHub. Your highlights are safe on this device and will sync next time.';
+}
+async function syncNow(){
+  if (!sync || !sync.gist) return;
+  if (syncing){ syncAgain = true; return; }
+  syncing = (async () => {
+    setSyncStatus('Syncing…');
+    try {
+      const g = await gh('/gists/' + sync.gist);
+      const f = g.files && g.files[GFILE];
+      let remote = {};
+      if (f){
+        let text = f.content;
+        if (f.truncated) text = await fetch(f.raw_url, {cache: 'no-store'}).then(r => r.text());
+        try { remote = JSON.parse(text) || {}; } catch(e){}
+      }
+      if (mergeIn(remote)){ store.set('marks', marks); store.set('dels', dels); refreshMarks(); }
+      if (canon(marks) !== canon(remote.marks) || canon(dels) !== canon(remote.dels))
+        await gh('/gists/' + sync.gist, {method: 'PATCH', body: JSON.stringify({files: {[GFILE]: {content: payload()}}})});
+      sync.last = Date.now(); store.set('sync', sync);
+      setSyncStatus(null);
+    } catch(e){ setSyncStatus(errText(e), true); }
+  })();
+  try { await syncing; } finally {
+    syncing = null;
+    if (syncAgain){ syncAgain = false; syncNow(); }
+  }
+}
+async function connectSync(token){
+  sync = {token};
+  setSyncStatus('Connecting…');
+  try {
+    let found = null;
+    for (let page = 1; page <= 10 && !found; page++){
+      const list = await gh(`/gists?per_page=100&page=${page}`);
+      found = list.find(g => g.files && g.files[GFILE]);
+      if (list.length < 100) break;
+    }
+    if (!found) found = await gh('/gists', {method: 'POST', body: JSON.stringify({
+      description: 'Parallel Bible highlights (kept in sync by the app)', public: false,
+      files: {[GFILE]: {content: payload()}}})});
+    sync.gist = found.id; store.set('sync', sync);
+    renderSyncBox();
+    await syncNow();
+  } catch(e){
+    sync = null; store.set('sync', null);
+    renderSyncBox();
+    setSyncStatus(e.status === 401 ? 'That key didn’t work. Check you copied all of it (it starts with ghp_).' : errText(e), true);
+  }
+}
+function ago(t){
+  const s = Math.round((Date.now() - t) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.round(s / 60) + ' min ago';
+  if (s < 86400) return Math.round(s / 3600) + ' h ago';
+  return new Date(t).toLocaleDateString();
+}
+function setSyncStatus(msg, isErr){
+  syncMsg = msg ? {msg, isErr} : null;
+  const el = $('syncStatus'); if (!el) return;
+  el.className = isErr ? 'err' : 'ok';
+  el.textContent = msg || (sync && sync.last ? `✓ Synced with GitHub · ${ago(sync.last)}` : '✓ Connected to GitHub');
+}
+function renderSyncBox(){
+  const box = $('syncBox'); box.textContent = '';
+  const status = Object.assign(document.createElement('span'), {id: 'syncStatus'});
+  if (sync && sync.gist){
+    box.append(status);
+    const row = Object.assign(document.createElement('div'), {className: 'row'});
+    const now = Object.assign(document.createElement('button'), {textContent: 'Sync now'});
+    now.onclick = syncNow;
+    const off = Object.assign(document.createElement('button'), {textContent: 'Disconnect'});
+    off.onclick = () => { sync = null; store.set('sync', null); syncMsg = null; renderSyncBox(); };
+    row.append(now, off);
+    const hint = Object.assign(document.createElement('p'), {className: 'hint',
+      textContent: 'Highlights save to a private note in your GitHub account and match on every device you connect. Disconnect only removes the key from this device.'});
+    box.append(row, hint);
+  } else {
+    box.innerHTML = `<p>Keep highlights safe in your GitHub account and the same on your phone and Mac. One-time setup:</p>
+      <ol>
+        <li><a href="https://github.com/settings/tokens/new?scopes=gist&amp;description=Parallel%20Bible" target="_blank" rel="noopener">Open GitHub’s new-key page</a> (sign in if asked). The <b>gist</b> box is already ticked.</li>
+        <li>Set <b>Expiration</b> to <b>No expiration</b>.</li>
+        <li>Scroll down, press <b>Generate token</b>, then copy the key (starts with <b>ghp_</b>).</li>
+        <li>Paste it below and press Connect. Keep the key in your Passwords app to use on your other devices.</li>
+      </ol>
+      <input id="tokenIn" type="password" autocomplete="off" spellcheck="false" placeholder="Paste key here (ghp_…)" aria-label="GitHub key">
+      <div class="row"><button id="connectBtn">Connect</button></div>`;
+    box.prepend(status);
+    $('connectBtn').onclick = () => { const t = $('tokenIn').value.trim(); if (t) connectSync(t); else setSyncStatus('Paste your GitHub key first.', true); };
+  }
+  if (syncMsg) setSyncStatus(syncMsg.msg, syncMsg.isErr);
+  else if (sync && sync.gist) setSyncStatus(null);
+}
+
+/* ---------- sheets ---------- */
+function openSheet(id){
+  closeSheets();
+  if (id === 'savedSheet'){ renderSaved(); renderSyncBox(); }
+  $(id).hidden = false; $('scrim').hidden = false;
+}
+function closeSheets(){ $('styleSheet').hidden = true; $('savedSheet').hidden = true; $('scrim').hidden = true; }
+
+/* ---------- display options ---------- */
+const mq = window.matchMedia('(prefers-color-scheme: dark)');
+function applyTheme(){
+  const dark = state.theme === 'dark' || (state.theme === 'auto' && mq.matches);
+  document.documentElement.classList.toggle('dark', dark);
+  const [icon, word] = {auto:['◐\uFE0E','Auto'], light:['☀\uFE0E','Light'], dark:['☾\uFE0E','Dark']}[state.theme];
+  $('theme').textContent = icon;
+  $('theme').append(Object.assign(document.createElement('span'), {className:'wide', textContent:' ' + word}));
+  $('theme').setAttribute('aria-label', 'Light or dark: ' + word);
+  for (const b of $('themePick').children) b.setAttribute('aria-pressed', b.dataset.v === state.theme);
+}
+mq.addEventListener ? mq.addEventListener('change', applyTheme) : mq.addListener(applyTheme);
+
+function applyOpts(){
+  const root = document.documentElement;
+  for (const k in BGS) root.classList.toggle('bg-' + k, k === state.bg);
+  root.style.setProperty('--scale', state.scale);
+  root.style.setProperty('--en-font', EN_FONTS[state.en][2]);
+  root.style.setProperty('--zh-font', ZH_FONTS[state.zh][2](state.trad));
+  $('verses').classList.toggle('nopy', !state.py);
+  $('py').setAttribute('aria-pressed', state.py);
+  $('sc').setAttribute('aria-pressed', !state.trad); $('tc').setAttribute('aria-pressed', state.trad);
+  $('niv11').setAttribute('aria-pressed', state.niv === 'NIV2011'); $('niv84').setAttribute('aria-pressed', state.niv === 'NIV');
+  $('sizeLbl').textContent = Math.round(state.scale * 100) + '%';
+  for (const b of $('bgPick').children) b.setAttribute('aria-pressed', b.dataset.v === state.bg);
+  for (const b of $('enPick').children) b.setAttribute('aria-pressed', b.dataset.v === state.en);
+  for (const b of $('zhPick').children) b.setAttribute('aria-pressed', b.dataset.v === state.zh);
+  $('rate').value = String(state.rate);
+  applyTheme();
+  for (const k of ['py','trad','niv','scale','theme','bg','en','zh','rate','voice']) store.set(k, state[k]);
+}
+
+function buildPickers(){
+  const swatch = {plain:['#FFFFFF','#1A1E26'], paper:['#FBFAF6','#1D1C19'], sepia:['#F5ECD8','#26201A'], linen:['#F6F8F8','#1A2226']};
+  for (const [v, name] of Object.entries(BGS)){
+    const b = document.createElement('button'); b.dataset.v = v; b.textContent = name;
+    b.style.background = `linear-gradient(135deg, ${swatch[v][0]} 55%, ${swatch[v][1]} 55%)`;
+    b.style.color = '#1B2130';
+    b.onclick = () => { state.bg = v; applyOpts(); };
+    $('bgPick').append(b);
+  }
+  for (const [v, [name, sub, fam]] of Object.entries(EN_FONTS)){
+    const b = document.createElement('button'); b.dataset.v = v;
+    b.style.fontFamily = fam; b.style.fontSize = '17px';
+    b.append(name); const s = document.createElement('small'); s.textContent = sub; b.append(s);
+    b.onclick = () => { state.en = v; applyOpts(); };
+    $('enPick').append(b);
+  }
+  for (const [v, [name, sub, fam]] of Object.entries(ZH_FONTS)){
+    const b = document.createElement('button'); b.dataset.v = v;
+    b.style.fontFamily = fam(false); b.style.fontSize = '18px';
+    b.append(name.split(' ')[0] + ' 神爱世人'); const s = document.createElement('small'); s.textContent = sub; b.append(s);
+    b.onclick = () => { state.zh = v; applyOpts(); };
+    $('zhPick').append(b);
+  }
+}
+
+/* ---------- Chinese audio (device text-to-speech) ---------- */
+const synth = window.speechSynthesis;
+const tts = {rows: [], idx: 0, on: false, paused: false, cur: null};
+let zhVoices = [];
+const LANG_NAME = l => {
+  l = l.toLowerCase().replace('_', '-');
+  if (l.startsWith('zh-hk') || l.startsWith('yue')) return '粤语 Cantonese (HK)';
+  if (l.startsWith('zh-tw')) return '國語 Mandarin (Taiwan)';
+  return '普通话 Mandarin (China)';
+};
+function loadVoices(){
+  if (!synth) return;
+  zhVoices = synth.getVoices().filter(v => /^(zh|yue|cmn)/i.test(v.lang));
+  const sel = $('voice'); sel.textContent = '';
+  if (!zhVoices.length){
+    const o = document.createElement('option'); o.textContent = 'No Chinese voice found on this device'; sel.append(o);
+    sel.disabled = true; return;
+  }
+  sel.disabled = false;
+  const auto = document.createElement('option'); auto.value = ''; auto.textContent = 'Automatic (matches 简/繁)'; sel.append(auto);
+  for (const v of zhVoices){
+    const o = document.createElement('option'); o.value = v.voiceURI;
+    o.textContent = `${LANG_NAME(v.lang)} · ${v.name.replace(/\s*\(.*\)$/, '')}`;
+    sel.append(o);
+  }
+  sel.value = zhVoices.some(v => v.voiceURI === state.voice) ? state.voice : '';
+}
+function pickVoice(){
+  if (state.voice){ const v = zhVoices.find(v => v.voiceURI === state.voice); if (v) return v; }
+  const want = state.trad ? /zh[-_]tw/i : /zh[-_]cn/i;
+  return zhVoices.find(v => want.test(v.lang)) || zhVoices.find(v => /zh[-_]cn/i.test(v.lang)) || zhVoices[0] || null;
+}
+function playFrom(i){
+  if (!synth){ alertPlayer('This browser cannot read aloud.'); return; }
+  tts.rows = [...$('verses').querySelectorAll('.v')];
+  if (!tts.rows.length) return;
+  synth.cancel();
+  tts.cur = null; tts.idx = Math.max(0, i); tts.on = true; tts.paused = false;
+  $('player').hidden = false; $('pPause').textContent = 'Pause';
+  setTimeout(speakNext, 80);   // Chrome drops speech started right after cancel()
+}
+function speakNext(){
+  if (!tts.on || tts.paused) return;
+  for (const r of tts.rows) r.classList.remove('playing');
+  if (tts.idx >= tts.rows.length){ stopAudio(); return; }
+  const row = tts.rows[tts.idx];
+  if (!row.dataset.zh){ tts.idx++; return speakNext(); }
+  row.classList.add('playing');
+  row.scrollIntoView({block:'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+  $('pNow').innerHTML = '';
+  $('pNow').append('Reading ', Object.assign(document.createElement('b'), {textContent: `${state.chap}:${row.dataset.v}`}));
+  const u = new SpeechSynthesisUtterance(row.dataset.zh);
+  const v = pickVoice();
+  if (v){ u.voice = v; u.lang = v.lang; } else u.lang = state.trad ? 'zh-TW' : 'zh-CN';
+  u.rate = state.rate;
+  u.onend = () => { if (u !== tts.cur) return; tts.idx++; speakNext(); };
+  u.onerror = e => { if (u !== tts.cur || e.error === 'interrupted' || e.error === 'canceled') return; tts.idx++; speakNext(); };
+  tts.cur = u;
+  synth.speak(u);
+}
+function stopAudio(){
+  tts.on = false; tts.cur = null;
+  if (synth) synth.cancel();
+  for (const r of tts.rows) r.classList.remove('playing');
+  $('player').hidden = true;
+}
+function alertPlayer(msg){ $('player').hidden = false; $('pNow').textContent = msg; }
+
+/* ---------- wiring ---------- */
+$('prev').onclick = () => step(-1);
+$('next').onclick = () => step(1);
+$('book').onchange = e => { state.book = +e.target.value; state.chap = 1; loadChapter(); };
+$('chap').onchange = e => { state.chap = +e.target.value; loadChapter(); };
+$('py').onclick = () => { state.py = !state.py; applyOpts(); };
+$('theme').onclick = () => { state.theme = {auto:'light', light:'dark', dark:'auto'}[state.theme]; applyOpts(); };
+for (const b of $('themePick').children) b.onclick = () => { state.theme = b.dataset.v; applyOpts(); };
+$('sc').onclick = () => { if (!state.trad) return; state.trad = false; applyOpts(); fillBookSelect(); loadChapter(); };
+$('tc').onclick = () => { if (state.trad) return; state.trad = true; applyOpts(); fillBookSelect(); loadChapter(); };
+$('niv11').onclick = () => { if (state.niv === 'NIV2011') return; state.niv = 'NIV2011'; applyOpts(); loadChapter(); };
+$('niv84').onclick = () => { if (state.niv === 'NIV') return; state.niv = 'NIV'; applyOpts(); loadChapter(); };
+$('smaller').onclick = () => { state.scale = Math.max(0.8, +(state.scale - 0.1).toFixed(1)); applyOpts(); };
+$('bigger').onclick = () => { state.scale = Math.min(1.8, +(state.scale + 0.1).toFixed(1)); applyOpts(); };
+$('openStyle').onclick = () => openSheet('styleSheet');
+$('openSaved').onclick = () => openSheet('savedSheet');
+$('scrim').onclick = closeSheets;
+for (const b of document.querySelectorAll('.closeSheet')) b.onclick = closeSheets;
+$('copyAll').onclick = e => {
+  const text = sortedMarks().map(m => { const bk = bookOf(m.b); return bk ? `${refText(bk, m.ch, m.v)}\n${m.en}\n${zhName(bk)} ${m.ch}:${m.v}　${m.zh}` : ''; }).join('\n\n');
+  copyText(text || 'No saved verses yet.', e.currentTarget);
+};
+
+let swipe = null, swipedAt = 0;
+$('verses').addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  swipe = e.touches.length === 1 ? {x: t.clientX, y: t.clientY, at: Date.now()} : null;
+}, {passive: true});
+$('verses').addEventListener('touchend', e => {
+  if (!swipe) return;
+  const t = e.changedTouches[0], dx = t.clientX - swipe.x, dy = t.clientY - swipe.y, quick = Date.now() - swipe.at < 700;
+  swipe = null;
+  if (quick && Math.abs(dx) > 90 && Math.abs(dy) < 45 && !String(getSelection())){ swipedAt = Date.now(); step(dx < 0 ? 1 : -1); }
+}, {passive: true});
+for (const [id, d] of [['bPrev', -1], ['bNext', 1], ['sidePrev', -1], ['sideNext', 1]]) $(id).onclick = () => step(d);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && sync && (!sync.last || Date.now() - sync.last > 20000)) syncNow();
+});
+$('verses').addEventListener('click', e => {
+  if (Date.now() - swipedAt < 500) return;
+  const row = e.target.closest('.v'); if (!row) return;
+  selectRow(row === selected ? null : row);
+});
+for (const s of document.querySelectorAll('.sw button')) s.onclick = () => {
+  const m = selected && marks[keyOf(selected)];
+  setMark(m && m.c === s.dataset.c ? null : s.dataset.c);
+};
+$('vClear').onclick = () => setMark(null);
+$('vClose').onclick = () => selectRow(null);
+$('vCopy').onclick = e => {
+  if (!selected) return;
+  const bk = bookOf(state.book), v = selected.dataset.v;
+  copyText(`${refText(bk, state.chap, v)} (${state.niv === 'NIV' ? 'NIV 1984' : 'NIV'})\n${selected.dataset.en}\n\n${zhName(bk)} ${state.chap}:${v}（${state.trad ? '和合本' : '新标点和合本'}）\n${selected.dataset.zh}`, e.currentTarget);
+};
+$('vPlay').onclick = () => { if (!selected) return; const i = [...$('verses').querySelectorAll('.v')].indexOf(selected); selectRow(null); playFrom(i); };
+$('listen').onclick = () => {
+  if (tts.on){ stopAudio(); return; }
+  const rows = [...$('verses').querySelectorAll('.v')];
+  playFrom(selected ? rows.indexOf(selected) : 0);
+};
+$('pPause').onclick = () => {
+  if (!tts.on) return;
+  if (!tts.paused){ tts.paused = true; tts.cur = null; synth.cancel(); $('pPause').textContent = 'Resume'; }
+  else { tts.paused = false; $('pPause').textContent = 'Pause'; speakNext(); }   // resumes from the start of the current verse
+};
+$('pStop').onclick = stopAudio;
+$('rate').onchange = e => { state.rate = +e.target.value; applyOpts(); if (tts.on && !tts.paused){ tts.cur = null; synth.cancel(); setTimeout(speakNext, 80); } };
+$('voice').onchange = e => { state.voice = e.target.value; applyOpts(); };
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ closeSheets(); selectRow(null); return; }
+  if (e.target.tagName === 'SELECT' || !$('scrim').hidden) return;
+  if (e.key === 'ArrowLeft') step(-1);
+  if (e.key === 'ArrowRight') step(1);
+});
+
+(async () => {
+  buildPickers();
+  applyOpts();
+  updateCount();
+  if (synth){ loadVoices(); synth.onvoiceschanged = loadVoices; }
+  loadBooks();
+  loadChapter();
+  syncNow();
+})();
+</script>
+</body>
+</html>
