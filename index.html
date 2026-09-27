@@ -284,7 +284,7 @@ main{max-width:1180px;margin:0 auto;padding-block:28px 0}
 
   <h4>Chinese reading voice</h4>
   <select id="voice" aria-label="Chinese reading voice"></select>
-  <p class="hint" id="voiceHint">Uses the voices built into this device. More voices: iPhone Settings → Accessibility → Spoken Content → Voices → Chinese.</p>
+  <p class="hint" id="voiceHint">Uses the voices built into this device. No sound on iPhone? Turn off silent mode (side switch) and turn the volume up. More voices: iPhone Settings → Accessibility → Spoken Content → Voices → Chinese.</p>
 </aside>
 
 <aside class="sheet" id="savedSheet" hidden aria-label="Saved verses">
@@ -870,10 +870,15 @@ function playFrom(i){
   if (!synth){ alertPlayer('This browser cannot read aloud.'); return; }
   tts.rows = [...$('verses').querySelectorAll('.v')];
   if (!tts.rows.length) return;
-  synth.cancel();
   tts.cur = null; tts.idx = Math.max(0, i); tts.on = true; tts.paused = false;
   $('player').hidden = false; $('pPause').textContent = 'Pause';
-  setTimeout(speakNext, 80);   // Chrome drops speech started right after cancel()
+  startSpeech(speakNext);
+}
+// iPhone only allows speech that starts directly inside the tap, so speak straight away.
+// The short wait is only for when something is already talking (Chrome drops speech started right after cancel()).
+function startSpeech(fn){
+  if (synth.speaking || synth.pending){ synth.cancel(); setTimeout(fn, 80); }
+  else fn();
 }
 function speakNext(){
   if (!tts.on || tts.paused) return;
@@ -897,15 +902,14 @@ function speakNext(){
 // Say one short phrase (the chapter title) without starting the verse-by-verse reader.
 function sayOnce(text){
   if (!synth){ alertPlayer('This browser cannot read aloud.'); return; }
-  if (tts.on) stopAudio();
-  synth.cancel();
-  setTimeout(() => {
+  if (tts.on){ tts.on = false; tts.cur = null; for (const r of tts.rows) r.classList.remove('playing'); $('player').hidden = true; }
+  startSpeech(() => {
     const u = new SpeechSynthesisUtterance(text);
     const v = pickVoice();
     if (v){ u.voice = v; u.lang = v.lang; } else u.lang = state.trad ? 'zh-TW' : 'zh-CN';
     u.rate = state.rate;
     synth.speak(u);
-  }, 80);
+  });
 }
 function stopAudio(){
   tts.on = false; tts.cur = null;
