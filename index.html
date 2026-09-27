@@ -8,6 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="圣经">
 <meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer"><!-- the online voice refuses requests that name another website -->
 <script>
 // Set theme + page look before first paint so there is no flash.
 (function(){
@@ -283,8 +284,9 @@ main{max-width:1180px;margin:0 auto;padding-block:28px 0}
   <div class="row"><button id="niv11">NIV 2011</button><button id="niv84">NIV 1984</button></div>
 
   <h4>Chinese reading voice</h4>
+  <div class="row" style="margin-bottom:8px"><button id="engOnline">Online voice</button><button id="engDevice">This device’s voice</button></div>
   <select id="voice" aria-label="Chinese reading voice"></select>
-  <p class="hint" id="voiceHint">Uses the voices built into this device. No sound on iPhone? Turn off silent mode (side switch) and turn the volume up. More voices: iPhone Settings → Accessibility → Spoken Content → Voices → Chinese.</p>
+  <p class="hint" id="voiceHint"></p>
 </aside>
 
 <aside class="sheet" id="savedSheet" hidden aria-label="Saved verses">
@@ -309,7 +311,10 @@ const state = {
   niv: store.get('niv', 'NIV2011'), scale: store.get('scale', 1),
   theme: store.get('theme', 'auto'), bg: store.get('bg', 'plain'),
   en: store.get('en', 'source'), zh: store.get('zh', 'song'),
-  rate: store.get('rate', 0.9), voice: store.get('voice', '')
+  rate: store.get('rate', 0.9), voice: store.get('voice', ''),
+  // iPhone mutes the device voice in silent mode, so iPhones/iPads start on the online voice.
+  engine: store.get('engine', (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) ? 'online' : 'device'),
+  olang: store.get('olang', '')
 };
 let marks = store.get('marks', {});          // "book:chap:verse" -> {c, t, en, zh}
 let dels  = store.get('dels', {});           // "book:chap:verse" -> time removed (so removals sync too)
@@ -806,7 +811,7 @@ function applyOpts(){
   for (const b of $('zhPick').children) b.setAttribute('aria-pressed', b.dataset.v === state.zh);
   $('rate').value = String(state.rate);
   applyTheme();
-  for (const k of ['py','trad','niv','scale','theme','bg','en','zh','rate','voice']) store.set(k, state[k]);
+  for (const k of ['py','trad','niv','scale','theme','bg','en','zh','rate','voice','engine','olang']) store.set(k, state[k]);
 }
 
 function buildPickers(){
@@ -834,9 +839,14 @@ function buildPickers(){
   }
 }
 
-/* ---------- Chinese audio (device text-to-speech) ---------- */
+/* ---------- Chinese audio ---------- */
+// Two voices: "online" plays short audio clips (iPhone plays these even in silent mode),
+// "device" uses the phone/computer's built-in speech (works offline, but iPhone mutes it in silent mode).
 const synth = window.speechSynthesis;
 const tts = {rows: [], idx: 0, on: false, paused: false, cur: null};
+const clip = new Audio();
+clip.preload = 'auto';
+try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e){}
 let zhVoices = [];
 const LANG_NAME = l => {
   l = l.toLowerCase().replace('_', '-');
@@ -844,21 +854,26 @@ const LANG_NAME = l => {
   if (l.startsWith('zh-tw')) return '國語 Mandarin (Taiwan)';
   return '普通话 Mandarin (China)';
 };
+const ONLINE_LANGS = [['', 'Automatic (matches 简/繁)'], ['zh-CN', '普通话 Mandarin (China)'], ['zh-TW', '國語 Mandarin (Taiwan)'], ['yue', '粤语 Cantonese']];
 function loadVoices(){
-  if (!synth) return;
-  zhVoices = synth.getVoices().filter(v => /^(zh|yue|cmn)/i.test(v.lang));
-  const sel = $('voice'); sel.textContent = '';
+  if (synth) zhVoices = synth.getVoices().filter(v => /^(zh|yue|cmn)/i.test(v.lang));
+  const sel = $('voice'); sel.textContent = ''; sel.disabled = false;
+  $('engOnline').setAttribute('aria-pressed', state.engine === 'online');
+  $('engDevice').setAttribute('aria-pressed', state.engine === 'device');
+  if (state.engine === 'online'){
+    for (const [v, name] of ONLINE_LANGS) sel.append(Object.assign(document.createElement('option'), {value: v, textContent: name}));
+    sel.value = state.olang;
+    $('voiceHint').textContent = 'Plays even when your iPhone is on silent. Needs internet. It uses Google Translate’s free reading voice, which Google could change without notice; if it stops working, switch to this device’s voice.';
+    return;
+  }
+  $('voiceHint').textContent = 'Uses the voices built into this device and works offline. iPhone mutes this voice in silent mode. More voices: iPhone Settings → Accessibility → Spoken Content → Voices → Chinese.';
   if (!zhVoices.length){
-    const o = document.createElement('option'); o.textContent = 'No Chinese voice found on this device'; sel.append(o);
+    sel.append(Object.assign(document.createElement('option'), {textContent: 'No Chinese voice found on this device'}));
     sel.disabled = true; return;
   }
-  sel.disabled = false;
-  const auto = document.createElement('option'); auto.value = ''; auto.textContent = 'Automatic (matches 简/繁)'; sel.append(auto);
-  for (const v of zhVoices){
-    const o = document.createElement('option'); o.value = v.voiceURI;
-    o.textContent = `${LANG_NAME(v.lang)} · ${v.name.replace(/\s*\(.*\)$/, '')}`;
-    sel.append(o);
-  }
+  sel.append(Object.assign(document.createElement('option'), {value: '', textContent: 'Automatic (matches 简/繁)'}));
+  for (const v of zhVoices)
+    sel.append(Object.assign(document.createElement('option'), {value: v.voiceURI, textContent: `${LANG_NAME(v.lang)} · ${v.name.replace(/\s*\(.*\)$/, '')}`}));
   sel.value = zhVoices.some(v => v.voiceURI === state.voice) ? state.voice : '';
 }
 function pickVoice(){
@@ -866,18 +881,79 @@ function pickVoice(){
   const want = state.trad ? /zh[-_]tw/i : /zh[-_]cn/i;
   return zhVoices.find(v => want.test(v.lang)) || zhVoices.find(v => /zh[-_]cn/i.test(v.lang)) || zhVoices[0] || null;
 }
+
+// The online voice takes about 100 characters per request, so long verses are cut at punctuation.
+function chunks(text){
+  const out = [];
+  let cur = '';
+  for (const piece of text.split(/(?<=[。！？；，：、”」』）])/)){
+    if (cur && (cur + piece).length > 95){ out.push(cur); cur = ''; }
+    cur += piece;
+    while (cur.length > 95){ out.push(cur.slice(0, 95)); cur = cur.slice(95); }
+  }
+  if (cur.trim()) out.push(cur);
+  return out;
+}
+const onlineUrl = t => `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${state.olang || (state.trad ? 'zh-TW' : 'zh-CN')}&q=${encodeURIComponent(t)}`;
+function sayOnline(text, done){
+  const token = {}, parts = chunks(text);
+  let i = 0;
+  const playPart = () => {
+    if (token !== tts.cur) return;
+    if (i >= parts.length){ done(token); return; }
+    clip.src = onlineUrl(parts[i++]);
+    clip.defaultPlaybackRate = clip.playbackRate = state.rate;
+    clip.play().catch(() => { if (token === tts.cur) onlineFailed(); });
+    if (i < parts.length) new Audio(onlineUrl(parts[i])).preload = 'auto';   // fetch the next piece early
+  };
+  clip.onended = playPart;
+  clip.onerror = () => { if (token === tts.cur) onlineFailed(); };
+  tts.cur = token;
+  playPart();
+}
+function onlineFailed(){
+  stopAudio();
+  alertPlayer('The online voice didn’t load. Check your internet, or switch to this device’s voice in Aa.');
+  const close = Object.assign(document.createElement('button'), {textContent: 'OK'});
+  close.onclick = () => { $('player').hidden = true; resetPlayer(); };
+  $('pNow').after(close);
+  for (const b of $('player').querySelectorAll('#pPause, #pStop, #rate')) b.hidden = true;
+}
+function resetPlayer(){
+  for (const b of $('player').querySelectorAll('button:not(#pPause):not(#pStop)')) b.remove();
+  for (const b of $('player').querySelectorAll('#pPause, #pStop, #rate')) b.hidden = false;
+}
+function sayDevice(text, done){
+  const u = new SpeechSynthesisUtterance(text);
+  const v = pickVoice();
+  if (v){ u.voice = v; u.lang = v.lang; } else u.lang = state.trad ? 'zh-TW' : 'zh-CN';
+  u.rate = state.rate;
+  u.onend = () => done(u);
+  u.onerror = e => { if (e.error !== 'interrupted' && e.error !== 'canceled') done(u); };
+  tts.cur = u;
+  synth.speak(u);
+}
+const sayText = (text, done) => state.engine === 'online' ? sayOnline(text, done) : sayDevice(text, done);
+function quiet(){ clip.pause(); if (synth) synth.cancel(); }
+function canSpeak(){
+  if (state.engine === 'device' && !synth){ alertPlayer('This browser cannot read aloud. Choose the online voice in Aa.'); return false; }
+  return true;
+}
+
 function playFrom(i){
-  if (!synth){ alertPlayer('This browser cannot read aloud.'); return; }
+  if (!canSpeak()) return;
+  resetPlayer();
   tts.rows = [...$('verses').querySelectorAll('.v')];
   if (!tts.rows.length) return;
   tts.cur = null; tts.idx = Math.max(0, i); tts.on = true; tts.paused = false;
   $('player').hidden = false; $('pPause').textContent = 'Pause';
   startSpeech(speakNext);
 }
-// iPhone only allows speech that starts directly inside the tap, so speak straight away.
-// The short wait is only for when something is already talking (Chrome drops speech started right after cancel()).
+// iPhone only allows sound that starts directly inside the tap, so start straight away.
+// The short wait is only for when the device voice is already talking (Chrome drops speech started right after cancel()).
 function startSpeech(fn){
-  if (synth.speaking || synth.pending){ synth.cancel(); setTimeout(fn, 80); }
+  clip.pause();
+  if (state.engine === 'device' && (synth.speaking || synth.pending)){ synth.cancel(); setTimeout(fn, 80); }
   else fn();
 }
 function speakNext(){
@@ -890,30 +966,18 @@ function speakNext(){
   row.scrollIntoView({block:'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
   $('pNow').innerHTML = '';
   $('pNow').append('Reading ', Object.assign(document.createElement('b'), {textContent: `${state.chap}:${row.dataset.v}`}));
-  const u = new SpeechSynthesisUtterance(row.dataset.zh);
-  const v = pickVoice();
-  if (v){ u.voice = v; u.lang = v.lang; } else u.lang = state.trad ? 'zh-TW' : 'zh-CN';
-  u.rate = state.rate;
-  u.onend = () => { if (u !== tts.cur) return; tts.idx++; speakNext(); };
-  u.onerror = e => { if (u !== tts.cur || e.error === 'interrupted' || e.error === 'canceled') return; tts.idx++; speakNext(); };
-  tts.cur = u;
-  synth.speak(u);
+  sayText(row.dataset.zh, tok => { if (tok !== tts.cur) return; tts.idx++; speakNext(); });
 }
 // Say one short phrase (the chapter title) without starting the verse-by-verse reader.
 function sayOnce(text){
-  if (!synth){ alertPlayer('This browser cannot read aloud.'); return; }
-  if (tts.on){ tts.on = false; tts.cur = null; for (const r of tts.rows) r.classList.remove('playing'); $('player').hidden = true; }
-  startSpeech(() => {
-    const u = new SpeechSynthesisUtterance(text);
-    const v = pickVoice();
-    if (v){ u.voice = v; u.lang = v.lang; } else u.lang = state.trad ? 'zh-TW' : 'zh-CN';
-    u.rate = state.rate;
-    synth.speak(u);
-  });
+  if (!canSpeak()) return;
+  if (tts.on){ tts.on = false; for (const r of tts.rows) r.classList.remove('playing'); $('player').hidden = true; }
+  tts.cur = null;
+  startSpeech(() => sayText(text, () => {}));
 }
 function stopAudio(){
   tts.on = false; tts.cur = null;
-  if (synth) synth.cancel();
+  quiet();
   for (const r of tts.rows) r.classList.remove('playing');
   $('player').hidden = true;
 }
@@ -981,13 +1045,19 @@ $('listen').onclick = () => {
 };
 $('pPause').onclick = () => {
   if (!tts.on) return;
-  if (!tts.paused){ tts.paused = true; tts.cur = null; synth.cancel(); $('pPause').textContent = 'Resume'; }
+  if (!tts.paused){ tts.paused = true; tts.cur = null; quiet(); $('pPause').textContent = 'Resume'; }
   else { tts.paused = false; $('pPause').textContent = 'Pause'; speakNext(); }   // resumes from the start of the current verse
 };
 $('pStop').onclick = stopAudio;
 $('sayTitle').onclick = () => { const b = bookOf(state.book); if (b) sayOnce(`${zhName(b)}，${zhChap(b.id, state.chap)}`); };
-$('rate').onchange = e => { state.rate = +e.target.value; applyOpts(); if (tts.on && !tts.paused){ tts.cur = null; synth.cancel(); setTimeout(speakNext, 80); } };
-$('voice').onchange = e => { state.voice = e.target.value; applyOpts(); };
+$('rate').onchange = e => {
+  state.rate = +e.target.value; applyOpts();
+  if (state.engine === 'online'){ clip.defaultPlaybackRate = clip.playbackRate = state.rate; return; }
+  if (tts.on && !tts.paused){ tts.cur = null; synth.cancel(); setTimeout(speakNext, 80); }
+};
+$('voice').onchange = e => { if (state.engine === 'online') state.olang = e.target.value; else state.voice = e.target.value; applyOpts(); };
+$('engOnline').onclick = () => { stopAudio(); state.engine = 'online'; applyOpts(); loadVoices(); };
+$('engDevice').onclick = () => { stopAudio(); state.engine = 'device'; applyOpts(); loadVoices(); };
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape'){ closeSheets(); selectRow(null); return; }
@@ -1000,7 +1070,8 @@ document.addEventListener('keydown', e => {
   buildPickers();
   applyOpts();
   updateCount();
-  if (synth){ loadVoices(); synth.onvoiceschanged = loadVoices; }
+  loadVoices();
+  if (synth) synth.onvoiceschanged = loadVoices;
   loadBooks();
   loadChapter();
   syncNow();
