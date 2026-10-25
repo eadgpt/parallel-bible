@@ -281,7 +281,8 @@ main{max-width:1180px;margin:0 auto;padding-block:28px 0}
   <div class="row"><button id="sc">新标点和合本 简体</button><button id="tc">和合本 繁體</button></div>
 
   <h4>English version</h4>
-  <div class="row"><button id="niv11">NIV 2011</button><button id="niv84">NIV 1984</button></div>
+  <div class="choice" id="enVerPick"></div>
+  <p class="hint">NIV is no longer available: its publisher made the free Bible text site remove it in October 2026.</p>
 
   <h4>Chinese reading voice</h4>
   <div class="row" style="margin-bottom:8px"><button id="engOnline">Online voice</button><button id="engDevice">This device’s voice</button></div>
@@ -308,7 +309,7 @@ const store = {
 const state = {
   book: store.get('book', 43), chap: store.get('chap', 3),
   py: store.get('py', true), trad: store.get('trad', false),
-  niv: store.get('niv', 'NIV2011'), scale: store.get('scale', 1),
+  niv: store.get('niv', 'BSB'), scale: store.get('scale', 1),   // English version (key name kept from when it was NIV-only)
   theme: store.get('theme', 'auto'), bg: store.get('bg', 'plain'),
   en: store.get('en', 'source'), zh: store.get('zh', 'song'),
   rate: store.get('rate', 0.9), voice: store.get('voice', ''),
@@ -346,6 +347,12 @@ function keepChapter(path, data){
   while (idx.length > CH_MAX){ try{ localStorage.removeItem('pb_ch' + idx.shift()); }catch(e){} }
   store.set('ch' + path, data); store.set('chIdx', idx);
 }
+const isTakedown = j => Array.isArray(j) && j.length > 0 && /has prohibited me from using/i.test(j[0].text || '');
+(function clearTakedowns(){
+  const idx = store.get('chIdx', []);
+  const keep = idx.filter(p => { const j = savedChapter(p); if (j && !isTakedown(j)) return true; try{ localStorage.removeItem('pb_ch' + p); }catch(e){} return false; });
+  if (keep.length !== idx.length) store.set('chIdx', keep);
+})();
 async function getJSON(path){
   if (cache.has(path)) return cache.get(path);
   const kept = savedChapter(path);
@@ -355,13 +362,14 @@ async function getJSON(path){
     const r = await fetch(API + path, {signal: ctl.signal});
     if (!r.ok) throw new Error(r.status);
     const j = await r.json();
+    if (isTakedown(j)){ const e = new Error('removed'); e.removed = true; throw e; }
     cache.set(path, j); keepChapter(path, j);
     return j;
   } finally { clearTimeout(timer); }
 }
 
 /* ---------- parse source markup into safe runs ---------- */
-function toRuns(html){
+function toRuns(html, english){
   const doc = new DOMParser().parseFromString('<div>' + html + '</div>', 'text/html');
   const runs = [];
   (function walk(node, kind){
@@ -370,6 +378,7 @@ function toRuns(html){
       else if (ch.nodeType === 1){
         const t = ch.tagName.toLowerCase();
         if (t === 'br') { runs.push({kind:'br', text:''}); continue; }
+        if (t === 's' || (english && t === 'sup')) continue;
         const k = t === 'e' ? 'name' : t === 'sup' ? 'note' : (t === 'b' || t === 'strong') ? 'bold' : kind;
         walk(ch, kind === 'note' ? 'note' : k);
       }
@@ -377,12 +386,12 @@ function toRuns(html){
   })(doc.body.firstChild, 'text');
   return runs;
 }
-const plainOf = (html, keepNotes) => toRuns(html).filter(r => keepNotes || r.kind !== 'note').map(r => r.text).join('').trim();
+const plainOf = (html, keepNotes, english) => toRuns(html, english).filter(r => keepNotes || r.kind !== 'note').map(r => r.text).join('').trim();
 
 function renderEn(html){
   const div = document.createElement('div');
   div.className = 'en';
-  for (const r of toRuns(html)){
+  for (const r of toRuns(html, true)){
     if (r.kind === 'br'){ div.append(document.createElement('br')); continue; }
     if (r.kind === 'bold'){ const s = document.createElement('strong'); s.textContent = r.text; div.append(s); }
     else if (r.kind === 'note'){ const s = document.createElement('span'); s.className='note'; s.textContent = r.text; div.append(s); }
@@ -435,7 +444,19 @@ function renderZh(html){
 const bookOf = id => books.find(x => x.id === id);
 const zhName = b => state.trad ? b.tc : b.sc;
 function zhChap(bookId, c){ return bookId === 19 ? `第${c}篇` : `第${c}章`; }
-const nivLabel = () => state.niv === 'NIV2011' ? 'New International Version · 2011' : 'New International Version · 1984';
+// [code, name, note, short label for copying]
+const EN_VERSIONS = [
+  ['BSB',   'Berean Standard Bible',     'Free, modern, reads closest to NIV', 'BSB'],
+  ['NLT',   'New Living Translation',    'Easy everyday English',              'NLT'],
+  ['ESV',   'English Standard Version',  'Word-for-word, modern',              'ESV'],
+  ['CSB17', 'Christian Standard Bible',  'Balanced, modern',                   'CSB'],
+  ['NKJV',  'New King James Version',    'Classic style, modern words',        'NKJV'],
+  ['NET',   'NET Bible',                 'Modern, scholarly',                  'NET'],
+  ['KJV',   'King James Version',        'The 1611 classic',                   'KJV']
+];
+if (!EN_VERSIONS.some(v => v[0] === state.niv)) state.niv = 'BSB';   // NIV was taken down
+const enVer = () => EN_VERSIONS.find(v => v[0] === state.niv);
+const nivLabel = () => enVer()[1];
 const zhLabel  = () => state.trad ? '和合本 · 繁體' : '新标点和合本 · 简体';
 const refText = (b, c, v) => `${b.en} ${c}:${v}`;
 
@@ -492,7 +513,9 @@ async function loadChapter(){
   } catch(e){
     clearTimeout(slow);
     if (seq !== loadSeq) return;
-    box.innerHTML = `<div class="msg">Couldn't load ${b.en} ${state.chap}. Check your internet connection, then try again.<br><button id="retry">Try again</button></div>`;
+    box.innerHTML = e.removed
+      ? `<div class="msg">The ${nivLabel()} has been taken down by the free Bible text site. Choose another English version in Aa.<br><button id="retry">Try again</button></div>`
+      : `<div class="msg">Couldn't load ${b.en} ${state.chap}. Check your internet connection, then try again.<br><button id="retry">Try again</button></div>`;
     $('retry').onclick = loadChapter;
     return;
   }
@@ -504,7 +527,7 @@ async function loadChapter(){
   const frag = document.createDocumentFragment();
   for (const n of nums){
     const row = document.createElement('div'); row.className = 'v'; row.dataset.v = n;
-    row.dataset.en = enMap.has(n) ? plainOf(enMap.get(n)) : '';
+    row.dataset.en = enMap.has(n) ? plainOf(enMap.get(n), false, true) : '';
     row.dataset.zh = zhMap.has(n) ? plainOf(zhMap.get(n)) : '';
     const num = document.createElement('div'); num.className = 'n'; num.textContent = n;
     const e = enMap.has(n) ? renderEn(enMap.get(n)) : Object.assign(document.createElement('div'), {className:'en gap', textContent:'(No verse here in this edition)'});
@@ -804,7 +827,7 @@ function applyOpts(){
   document.querySelector('main').classList.toggle('nopy', !state.py);
   $('py').setAttribute('aria-pressed', state.py);
   $('sc').setAttribute('aria-pressed', !state.trad); $('tc').setAttribute('aria-pressed', state.trad);
-  $('niv11').setAttribute('aria-pressed', state.niv === 'NIV2011'); $('niv84').setAttribute('aria-pressed', state.niv === 'NIV');
+  for (const b of $('enVerPick').children) b.setAttribute('aria-pressed', b.dataset.v === state.niv);
   $('sizeLbl').textContent = Math.round(state.scale * 100) + '%';
   for (const b of $('bgPick').children) b.setAttribute('aria-pressed', b.dataset.v === state.bg);
   for (const b of $('enPick').children) b.setAttribute('aria-pressed', b.dataset.v === state.en);
@@ -993,8 +1016,12 @@ $('theme').onclick = () => { state.theme = {auto:'light', light:'dark', dark:'au
 for (const b of $('themePick').children) b.onclick = () => { state.theme = b.dataset.v; applyOpts(); };
 $('sc').onclick = () => { if (!state.trad) return; state.trad = false; applyOpts(); fillBookSelect(); loadChapter(); };
 $('tc').onclick = () => { if (state.trad) return; state.trad = true; applyOpts(); fillBookSelect(); loadChapter(); };
-$('niv11').onclick = () => { if (state.niv === 'NIV2011') return; state.niv = 'NIV2011'; applyOpts(); loadChapter(); };
-$('niv84').onclick = () => { if (state.niv === 'NIV') return; state.niv = 'NIV'; applyOpts(); loadChapter(); };
+for (const [code, name, note] of EN_VERSIONS){
+  const b = document.createElement('button'); b.dataset.v = code;
+  b.append(name); b.append(Object.assign(document.createElement('small'), {textContent: note}));
+  b.onclick = () => { if (state.niv === code) return; state.niv = code; applyOpts(); loadChapter(); };
+  $('enVerPick').append(b);
+}
 $('smaller').onclick = () => { state.scale = Math.max(0.8, +(state.scale - 0.1).toFixed(1)); applyOpts(); };
 $('bigger').onclick = () => { state.scale = Math.min(1.8, +(state.scale + 0.1).toFixed(1)); applyOpts(); };
 $('openStyle').onclick = () => openSheet('styleSheet');
@@ -1035,7 +1062,7 @@ $('vClose').onclick = () => selectRow(null);
 $('vCopy').onclick = e => {
   if (!selected) return;
   const bk = bookOf(state.book), v = selected.dataset.v;
-  copyText(`${refText(bk, state.chap, v)} (${state.niv === 'NIV' ? 'NIV 1984' : 'NIV'})\n${selected.dataset.en}\n\n${zhName(bk)} ${state.chap}:${v}（${state.trad ? '和合本' : '新标点和合本'}）\n${selected.dataset.zh}`, e.currentTarget);
+  copyText(`${refText(bk, state.chap, v)} (${enVer()[3]})\n${selected.dataset.en}\n\n${zhName(bk)} ${state.chap}:${v}（${state.trad ? '和合本' : '新标点和合本'}）\n${selected.dataset.zh}`, e.currentTarget);
 };
 $('vPlay').onclick = () => { if (!selected) return; const i = [...$('verses').querySelectorAll('.v')].indexOf(selected); selectRow(null); playFrom(i); };
 $('listen').onclick = () => {
